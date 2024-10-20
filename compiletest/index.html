@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`compiletest` is the main test harness for running test suites under `tests/`. It supports both `rustc` and `rustdoc` test suites. This is the library portion and “guts” of the test harness. Try to keep the binary as minimal as possible."><title>compiletest - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-a5dc3bae.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="compiletest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (da935398d 2024-10-19)" data-channel="nightly" data-search-js="search-c5a66128.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../compiletest/index.html">compiletest</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#core-phases" title="Core phases">Core phases</a><ul><li><a href="#configuration-collection" title="Configuration collection">Configuration collection</a></li><li><a href="#configuration-validation" title="Configuration validation">Configuration validation</a></li><li><a href="#test-discovery" title="Test discovery">Test discovery</a></li><li><a href="#directive-collection" title="Directive collection">Directive collection</a></li><li><a href="#directive-validation" title="Directive validation">Directive validation</a></li><li><a href="#libtest-preparation-and-test-package-assembly" title="Libtest preparation and test package assembly">Libtest preparation and test package assembly</a></li><li><a href="#libtest-execution" title="Libtest execution">Libtest execution</a></li><li><a href="#report-generation--metrics-generation" title="Report generation / metrics generation">Report generation / metrics generation</a></li></ul></li><li><a href="#considerations-for-cross-cutting-concerns" title="Considerations for cross-cutting concerns">Considerations for cross-cutting concerns</a><ul><li><a href="#error-handling-and-diagnostics" title="Error handling and diagnostics">Error handling and diagnostics</a></li><li><a href="#metrics-collection-and-generation" title="Metrics collection and generation">Metrics collection and generation</a></li></ul></li><li><a href="#testing" title="Testing">Testing</a><ul><li><a href="#unit-testing" title="Unit testing">Unit testing</a></li><li><a href="#internal-integration-testing" title="Internal integration testing">Internal integration testing</a></li><li><a href="#external-integration-testing" title="External integration testing">External integration testing</a></li></ul></li><li><a href="#logging" title="Logging">Logging</a><ul><li><a href="#compiletest-developer-facing-logging" title="`compiletest` developer-facing logging"><code>compiletest</code> developer-facing logging</a></li><li><a href="#ci-facing-logging" title="CI-facing logging">CI-facing logging</a></li></ul></li><li><a href="#documentation" title="Documentation">Documentation</a><ul><li><a href="#compiletest-self-docs" title="`compiletest` self docs"><code>compiletest</code> self docs</a></li><li><a href="#test-modes-and-test-suites" title="Test modes and test suites">Test modes and test suites</a></li><li><a href="#directives" title="Directives">Directives</a></li></ul></li><li><a href="#other-remarks" title="Other remarks">Other remarks</a><ul><li><a href="#discipline-of-information-sharing-and-data-dependencies" title="Discipline of information sharing and data dependencies">Discipline of information sharing and data dependencies</a></li><li><a href="#testability-and-reproducibility-is-critical" title="Testability and reproducibility is critical">Testability and reproducibility is critical</a></li><li><a href="#centralize-stderrstdout-handling" title="Centralize stderr/stdout handling">Centralize stderr/stdout handling</a></li><li><a href="#performance-is-important" title="Performance is important">Performance is important</a></li><li><a href="#decouple-from-libtest-specifics-dont-design-libtest-central-logic" title="Decouple from libtest specifics, don’t design libtest-central logic">Decouple from libtest specifics, don’t design libtest-central logic</a></li></ul></li><li><a href="#useful-references-and-resources" title="Useful references and resources">Useful references and resources</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>compiletest</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/compiletest/lib.rs.html#1-208">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>compiletest</code> is the main test harness for running test suites under <code>tests/</code>. It supports both
+<code>rustc</code> and <code>rustdoc</code> test suites. This is the library portion and “guts” of the test harness.
+Try to keep the binary as minimal as possible.</p>
+<p>This top-level crate doc comment is intended to provide a high-level overview of the test
+harness as well as some context and considerations. Please improve both this crate-level doc
+comment as well as module-level doc comments as suitable.</p>
+<div class="warning">
+This module is the main orchestrator. Keep any specific implementation details out of `lib.rs`!
+This module is the public API, handling module declaration and re-exports.
+</div>
+<hr />
+<h2 id="core-phases"><a class="doc-anchor" href="#core-phases">§</a>Core phases</h2><h3 id="configuration-collection"><a class="doc-anchor" href="#configuration-collection">§</a>Configuration collection</h3>
+<p>TODO</p>
+<h3 id="configuration-validation"><a class="doc-anchor" href="#configuration-validation">§</a>Configuration validation</h3>
+<p>TODO</p>
+<h3 id="test-discovery"><a class="doc-anchor" href="#test-discovery">§</a>Test discovery</h3>
+<p>TODO</p>
+<h3 id="directive-collection"><a class="doc-anchor" href="#directive-collection">§</a>Directive collection</h3>
+<p>TODO</p>
+<h3 id="directive-validation"><a class="doc-anchor" href="#directive-validation">§</a>Directive validation</h3><h4 id="naive-recognition"><a class="doc-anchor" href="#naive-recognition">§</a>Naive recognition</h4>
+<p>TODO</p>
+<h4 id="early-validation-into-structured-representation"><a class="doc-anchor" href="#early-validation-into-structured-representation">§</a>Early validation into structured representation</h4>
+<p>TODO</p>
+<h4 id="late-validation-and-test-config-assembly"><a class="doc-anchor" href="#late-validation-and-test-config-assembly">§</a>Late validation and test config assembly</h4>
+<p>TODO</p>
+<h3 id="libtest-preparation-and-test-package-assembly"><a class="doc-anchor" href="#libtest-preparation-and-test-package-assembly">§</a>Libtest preparation and test package assembly</h3>
+<p>TODO</p>
+<h3 id="libtest-execution"><a class="doc-anchor" href="#libtest-execution">§</a>Libtest execution</h3>
+<p>TODO</p>
+<h3 id="report-generation--metrics-generation"><a class="doc-anchor" href="#report-generation--metrics-generation">§</a>Report generation / metrics generation</h3>
+<p>TODO</p>
+<hr />
+<h2 id="considerations-for-cross-cutting-concerns"><a class="doc-anchor" href="#considerations-for-cross-cutting-concerns">§</a>Considerations for cross-cutting concerns</h2><h3 id="error-handling-and-diagnostics"><a class="doc-anchor" href="#error-handling-and-diagnostics">§</a>Error handling and diagnostics</h3>
+<p>TODO</p>
+<ul>
+<li>Have proper user-facing error levels: warn vs error vs info.</li>
+<li>Can we use some color when this is available, i.e. in a supported tty (heuristically)?</li>
+</ul>
+<h3 id="metrics-collection-and-generation"><a class="doc-anchor" href="#metrics-collection-and-generation">§</a>Metrics collection and generation</h3>
+<p>TODO</p>
+<hr />
+<h2 id="testing"><a class="doc-anchor" href="#testing">§</a>Testing</h2><h3 id="unit-testing"><a class="doc-anchor" href="#unit-testing">§</a>Unit testing</h3>
+<p>TODO</p>
+<h3 id="internal-integration-testing"><a class="doc-anchor" href="#internal-integration-testing">§</a>Internal integration testing</h3>
+<p>TODO</p>
+<h3 id="external-integration-testing"><a class="doc-anchor" href="#external-integration-testing">§</a>External integration testing</h3>
+<p>TODO</p>
+<hr />
+<h2 id="logging"><a class="doc-anchor" href="#logging">§</a>Logging</h2><h3 id="compiletest-developer-facing-logging"><a class="doc-anchor" href="#compiletest-developer-facing-logging">§</a><code>compiletest</code> developer-facing logging</h3>
+<ul>
+<li>Probably with <code>tracing</code>, but don’t rely on <code>tracing</code> naively for user-facing diagnostics.</li>
+<li>Explicitly set target name as <code>compiletest</code>.</li>
+</ul>
+<h3 id="ci-facing-logging"><a class="doc-anchor" href="#ci-facing-logging">§</a>CI-facing logging</h3>
+<ul>
+<li>Consider looking at how <code>opt-dist</code> does it with GH CI log groups.</li>
+</ul>
+<hr />
+<h2 id="documentation"><a class="doc-anchor" href="#documentation">§</a>Documentation</h2><h3 id="compiletest-self-docs"><a class="doc-anchor" href="#compiletest-self-docs">§</a><code>compiletest</code> self docs</h3>
+<p>TODO</p>
+<h3 id="test-modes-and-test-suites"><a class="doc-anchor" href="#test-modes-and-test-suites">§</a>Test modes and test suites</h3>
+<p>TODO</p>
+<p>QUESTION(jieyouxu): do we really need the “test mode” abstraction?</p>
+<h3 id="directives"><a class="doc-anchor" href="#directives">§</a>Directives</h3>
+<p>TODO</p>
+<p>QUESTION(jieyouxu): how can we make sure each directive contain these vital info on
+<code>nightly-rustc</code> docs:</p>
+<ul>
+<li>Directive name</li>
+<li>Directive flavor: name-only, name-value, name-special?</li>
+<li>Supported test suites</li>
+<li>Mutually incompatible with…?</li>
+<li>Quirks, warnings and remarks</li>
+<li>Interactions with e.g. <code>compile-flags</code> or <code>exec-env</code> or such.</li>
+</ul>
+<p>Can we enforce that each directive have these entries, maybe something like <code>define_lint!</code>?</p>
+<hr />
+<h2 id="other-remarks"><a class="doc-anchor" href="#other-remarks">§</a>Other remarks</h2><h3 id="discipline-of-information-sharing-and-data-dependencies"><a class="doc-anchor" href="#discipline-of-information-sharing-and-data-dependencies">§</a>Discipline of information sharing and data dependencies</h3>
+<ul>
+<li>For each phase, require the bare minimum of info. Don’t have a global ctxt that contains <em>all</em>
+the info, but only probably a diagnostics handler. The idea here is to make it as easy to test
+in isolated parts as possible. E.g. if we just pass a diagnostics handler and not a full blown
+global ctxt, then we can easily stub out the diagnostics handler then check behavior of a
+function/component with respect to inputs controlled and provided by the test. See testability
+section below as well.</li>
+<li>For the above purpose, don’t be afraid to introduce phase-local context structs that have a
+shorter lifetime (roughly phase-local) than the entire test session.</li>
+</ul>
+<h3 id="testability-and-reproducibility-is-critical"><a class="doc-anchor" href="#testability-and-reproducibility-is-critical">§</a>Testability and reproducibility is critical</h3>
+<ul>
+<li>The test harness itself must be reliable. Afterall, if the test harness is not reliable, how
+can we claim rustc/rustdoc and their associated tests are reliable?
+<ul>
+<li>To aid with this, we need to make sure <code>compiletest</code> itself has a high self-coverage,
+through a multitude of test granularity (i.e. unit tests or integration tests are not
+sufficient alone, these are needed to complement each other for better test coverage).</li>
+</ul>
+</li>
+<li>Spurious failures are the worst kind of failures.</li>
+<li>We need to properly account for environments, especially surrounding properly supporting
+cross-compilation scenarios and remote-test-client.</li>
+</ul>
+<h3 id="centralize-stderrstdout-handling"><a class="doc-anchor" href="#centralize-stderrstdout-handling">§</a>Centralize stderr/stdout handling</h3>
+<ul>
+<li>Do not use <code>print{,ln}!</code> or <code>eprint{,ln}!</code> for production, use <code>write{,ln}</code> with explicit
+error handling (omitting the error is one of the possible valid strategies). The std macros do
+not handle I/O errors and will just panic, which is not great UX (e.g. broken pipes).</li>
+<li>Probably provide centralized output helpers so it’s easier to centralize / enforce consistent
+style. Probably ban <code>print{,ln}!</code> and <code>eprint{,ln}!</code> with the clippy lints.</li>
+</ul>
+<h3 id="performance-is-important"><a class="doc-anchor" href="#performance-is-important">§</a>Performance is important</h3>
+<p>We should have self-profiling (connected to metrics) so we can identify which parts of the
+<code>compiletest</code> logic take up the most time. This should make it easier for contributors if they
+want to optimize/tune specific phases.</p>
+<h3 id="decouple-from-libtest-specifics-dont-design-libtest-central-logic"><a class="doc-anchor" href="#decouple-from-libtest-specifics-dont-design-libtest-central-logic">§</a>Decouple from libtest specifics, don’t design libtest-central logic</h3>
+<p>Don’t get held hostage by how libtest does things. Instead, consider libtest as a test runner
+“backend” or plugin, keep this part flexible so we can swap out to other thing like
+<code>libtest-next</code> or <code>ui_test</code> in the future should we have a viable alternative.</p>
+<hr />
+<h2 id="useful-references-and-resources"><a class="doc-anchor" href="#useful-references-and-resources">§</a>Useful references and resources</h2>
+<p>TODO</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.RawConfig"><code>pub use self::cli::<a class="struct" href="cli/struct.RawConfig.html" title="struct compiletest::cli::RawConfig">RawConfig</a>;</code></div></li><li><div class="item-name" id="reexport.Config"><code>pub use self::config::<a class="struct" href="config/struct.Config.html" title="struct compiletest::config::Config">Config</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="__faq/index.html" title="mod compiletest::__faq">__faq</a></div><div class="desc docblock-short">Documentation: FAQ</div></li><li><div class="item-name"><a class="mod" href="__tutorials/index.html" title="mod compiletest::__tutorials">__<wbr>tutorials</a></div><div class="desc docblock-short">Documentation: tutorials collection</div></li><li><div class="item-name"><a class="mod" href="cli/index.html" title="mod compiletest::cli">cli</a></div><div class="desc docblock-short"><code>compiletest</code> supports two layers of configuration, in order of precedence (last wins and has
+highest precedence)</div></li><li><div class="item-name"><a class="mod" href="config/index.html" title="mod compiletest::config">config</a></div><div class="desc docblock-short">TODO(jieyouxu): stub</div></li></ul></section></div></main></body></html>
