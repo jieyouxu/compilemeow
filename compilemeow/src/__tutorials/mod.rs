@@ -15,3 +15,4 @@
 //! TODO
 
 pub mod __directives;
+pub mod __test_suites;

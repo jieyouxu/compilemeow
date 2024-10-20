@@ -202,7 +202,6 @@ pub mod config;
 pub mod __faq;
 pub mod __tutorials;
 
-
 // Remark: use `self::` path prefixes here so rustfmt has better grouping.
 
 pub use self::cli::RawConfig;
