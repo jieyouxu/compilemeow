@@ -7,7 +7,6 @@ on:
 
 defaults:
   run:
-    working-directory: ./compilemeow
 
 jobs:
   docs:
@@ -28,6 +27,7 @@ jobs:
           override: true
       - name: Build documentation
         run: cargo doc --no-deps --document-private-items --all-features
+        working-directory: ./compilemeow
       - name: Finalize documentation
         run: >
           CRATE_NAME=$(echo '${{ github.repository }}-lib' | tr '[:upper:]'
@@ -37,14 +37,15 @@ jobs:
           url=${CRATE_NAME/-/_}\">" > target/doc/index.html
 
           touch target/doc/.nojekyll
+        working-directory: ./compilemeow
       - name: Upload as artifact
         uses: actions/upload-artifact@v4
         with:
           name: Documentation
-          path: target/doc
+          path: compilemeow/target/doc
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           ACCESS_TOKEN: '${{ secrets.GH_PAT }}'
           BRANCH: gh-pages
-          folder: target/doc
+          folder: compilemeow/target/doc
