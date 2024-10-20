@@ -4,3 +4,22 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
+clap = { version = "4", features = ["derive", "env"] }
+
+# Debug logging, not suitable for use in terms of user-facing logging.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3.3", default-features = false, features = ["ansi", "env-filter", "fmt", "parking_lot", "smallvec"] }
+
+# Directory walking that should properly account for `.gitignore` and such, more
+# robust than hand-rolling our own traversal. 
+ignore = "0.4"
+
+# UTF-8 paths
+camino = "1"
+
+[lib]
+name = "compiletest"
+
+[[bin]]
+name = "compiletest"
