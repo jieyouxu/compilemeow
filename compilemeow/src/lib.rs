@@ -172,6 +172,19 @@
 //! `libtest-next` or `ui_test` in the future should we have a viable alternative.
 //!
 //! ------------------------------------------------------------------------------------------------
+//! # Unresolved questions
+//!
+//! ## `compare-mode`s?
+//!
+//! Apparently `compiletest` supports comparision output between different borrow-checkers. What use
+//! cases do we need to support for that?
+//!
+//! ## `pass-mode`s
+//!
+//! `compiletest` has ways to either force elevate between check-build-run via `--pass=$PASS_MODE`
+//! and opt-out tests via `//@ ignore-pass`.
+//!
+//! ------------------------------------------------------------------------------------------------
 //! # Useful references and resources
 //!
 //! TODO
